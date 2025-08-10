@@ -11,6 +11,8 @@ class Store(Base):
     business_number = Column(Integer, unique=True, index=True, nullable=False)
     user_id = Column(Integer, ForeignKey("tb_user.id"), nullable=False)
     user = relationship("User", back_populates="stores")  # 추가
+    platform_id = Column(Integer, ForeignKey("tb_platforms.id"), nullable=False)
+    platform = relationship("Platform", back_populates="store")  # 추가
     review = relationship("Review", back_populates="store", cascade="all, delete-orphan")  # 추가
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
