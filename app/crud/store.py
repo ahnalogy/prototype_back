@@ -18,6 +18,9 @@ def get_stores(db: Session,user_id: int):
 def get_stores_all(db: Session):
     return db.query(Store).all()
 
+def get_stores_by_platform(db: Session, platform_id: int):
+    return db.query(Store).filter(Store.platform_id == platform_id).all()
+
 def create_store(db: Session, store: StoreCreate, user_id: int):
     db_store = Store(
         name=store.name,
