@@ -63,8 +63,6 @@ def generate_review_response(
 
 # 변수가 들어가면 안됨 -> {tone}/{tone_guide} 제거바람
         system_prompt = f"""
-        다음은 {tone} 말투의 예시와 지침이야:
-        {tone_guide}
         
 
         너는 숙박업소의 리뷰 담당 AI야. 고객의 리뷰와 평점을 기반으로 {tone} 말투로 응답을 생성해줘.
@@ -79,6 +77,9 @@ def generate_review_response(
         
 # user_prompt = 변수 넣어도됨
         user_prompt = f"리뷰: {review_text} 평점: {rating}점"
+        
+        f"""다음은 {tone} 말투의 예시와 지침이야:
+        {tone_guide}"""
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",

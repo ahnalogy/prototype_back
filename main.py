@@ -2,8 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.controller import router
-from app.core.database import engine
-from app.model.domain.user import Base
+from app.core.database import engine, Base
 
 # 데이터베이스 테이블 생성
 Base.metadata.create_all(bind=engine)
