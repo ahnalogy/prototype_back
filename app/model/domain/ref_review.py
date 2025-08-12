@@ -16,7 +16,7 @@ class RefReview(Base):
     platform_id = Column(Integer, ForeignKey("tb_ref_platforms.id"), nullable=False)
     platform = relationship("RefPlatform") 
     autoreply_id = Column(Integer, ForeignKey("tb_ref_autoreplies.id"), nullable=True)  # 자동응답 참조 추가
-    autoreply = relationship("RefAutoReply", back_populates="reviews")  # 자동
+    autoreply = relationship("RefAutoReply", back_populates="ref_reviews")  # 자동
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

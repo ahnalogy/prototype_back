@@ -16,7 +16,8 @@ class RefAutoReply(Base):
     biz_casual_en = Column(String, nullable=False)
     formal_en = Column(String, nullable=False)
 
-    reviews = relationship("RefReview", back_populates="autoreply")  # 리뷰와의 관계 설정
+    ref_reviews = relationship("RefReview", back_populates="autoreply")  # ref리뷰와의 관계 설정
+    reviews = relationship("Review", back_populates="autoreply")  # 리뷰와의 관계 설정
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

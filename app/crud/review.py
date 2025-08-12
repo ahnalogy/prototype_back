@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from app.model.domain.review import Review
-from app.model.domain.store import Store
 from app.model.domain.platform import Platform
 from app.model.schema.review import ReviewCreate, ReviewUpdate
 
@@ -19,12 +18,6 @@ def get_reviews_by_filters(db: Session,limit: int = 10, offset: int = 0, **filte
     query = query.limit(limit).offset(offset)
     return query.all()
 
-def get_reviews_by_store(db: Session, store_id: int,limit: int = 10, offset: int = 0):
-    return db.query(Review).filter(Review.store_id == store_id).limit(limit).offset(offset).all()
-
-def get_reviews_by_store_names(db: Session, store_names: list[str], limit: int = 10, offset: int = 0):
-    return db.query(Review).join(Store).filter(Store.name.in_(store_names)).limit(limit).offset(offset).all()
-
 # 플랫폼별 리뷰 조회 함수들 추가
 def get_reviews_by_platform(db: Session, platform_name: str, limit: int = 10, offset: int = 0):
     return db.query(Review).join(Platform).filter(Platform.name == platform_name).limit(limit).offset(offset).all()
@@ -32,12 +25,12 @@ def get_reviews_by_platform(db: Session, platform_name: str, limit: int = 10, of
 def get_reviews_all_platforms(db: Session, limit: int = 10, offset: int = 0):
     return db.query(Review).join(Platform).limit(limit).offset(offset).all()
 
-def create_review(db: Session, review: ReviewCreate, store_id: int, platform_id: int = None):
+def create_review(db: Session, review: ReviewCreate, platform_id: int = None,autoreply_id: int = None):
     db_review = Review(
         content=review.content,
         rating=review.rating,
-        reviewer=review.reviewer,  
-        store_id=store_id,
+        reviewer=review.reviewer,
+        autoreply_id=autoreply_id,  # 자동응답 ID 추가  
         platform_id=platform_id or 1  # 기본값으로 플랫폼 ID 1 사용
     )
     db.add(db_review)

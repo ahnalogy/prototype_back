@@ -13,11 +13,11 @@ class Review(Base):
     reviewer = Column(String, nullable=False)
     reply = Column(String, nullable=True)
     is_replied = Column(Boolean, default=False)    
-    store_id = Column(Integer, ForeignKey("tb_store.id"), nullable=False)
     platform_id = Column(Integer, ForeignKey("tb_platforms.id"), nullable=False)  # 플랫폼 정보 추가
-
-    store = relationship("Store", back_populates="review")
     platform = relationship("Platform")  # 플랫폼 관계 추가
+
+    autoreply_id = Column(Integer, ForeignKey("tb_ref_autoreplies.id"), nullable=True)  # 자동응답 참조 추가
+    autoreply = relationship("RefAutoReply", back_populates="reviews")  # 자동응
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

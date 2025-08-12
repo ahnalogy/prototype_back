@@ -4,7 +4,11 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.model.schema.autoreview import AutoReviewCreate
 from app.core.auth import verify_token
 from app.service.auto_review import generate_review_response, translate_ko2en
+from app.crud.review import get_review
+from app.crud.ref_autoreply import get_ref_autoreply_by_id
 from app.utils.check import check_language
+from sqlalchemy.orm import Session
+from app.core.database import get_db
 
 autoreview_router = APIRouter()
 security = HTTPBearer()
@@ -30,7 +34,6 @@ def create_auto_review(
         # 프론트에서 전달된 리뷰 정보
         username = review.username
         rating = review.rating
-        storename = review.storename
         content = review.content
         iskorean = check_language(content)
 
@@ -67,3 +70,31 @@ def create_auto_review(
     except Exception as e:
         print("리뷰 응답 생성 실패:", str(e))
         raise HTTPException(status_code=500, detail="리뷰 응답 생성 중 오류 발생")
+    
+@autoreview_router.get("/ref/{review_id}")
+def get_auto_review_by_id(review_id: int, db: Session = Depends(get_db)):
+    """
+    자동 리뷰 ID로 조회
+    """
+    review = get_review(db, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="리뷰를 찾을 수 없습니다.")
+    
+    autoreply_id = review.autoreply_id
+    if not autoreply_id:
+        raise HTTPException(status_code=404, detail="자동응답을 찾을 수 없습니다.")
+    
+    autoreply = get_ref_autoreply_by_id(db, autoreply_id)
+    
+    return {
+        "results": [
+            {"id": 1, "title": "친근한 버전", "text": autoreply.casual},
+            {"id": 2, "title": "정중한 버전", "text": autoreply.formal},
+            {"id": 3, "title": "공손한 버전", "text": autoreply.biz_casual}
+        ],
+        "results_en": [
+            {"id": 1, "title": "casual version", "text": autoreply.casual_en},
+            {"id": 2, "title": "formal version", "text": autoreply.formal_en},
+            {"id": 3, "title": "business casual version", "text": autoreply.biz_casual_en}
+        ]
+    }

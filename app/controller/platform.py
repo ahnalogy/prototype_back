@@ -36,7 +36,7 @@ def create_platform(platform_crate: PlatformCreate, db: Session = Depends(get_db
             reviewer=ref_review.reviewer,
             platform=ref_platform.name
         )
-        create_review_crud(db, review_data, 0, platform_id=platform.id)
+        create_review_crud(db, review_data,platform_id=platform.id, autoreply_id=ref_review.autoreply_id)
     return{"name": platform.name}
 
 @platform_router.get("/list", response_model=list[ResponsePlatform])

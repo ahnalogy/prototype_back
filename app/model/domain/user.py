@@ -13,7 +13,5 @@ class User(Base):
     phone_number = Column(String, nullable=True)
     referral_code = Column(String, nullable=True)
 
-    stores = relationship("Store", back_populates="user")  # 추가
-
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

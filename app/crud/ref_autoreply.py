@@ -18,3 +18,6 @@ def create_ref_autoreply(db: Session, casual: str, biz_casual: str, formal: str,
     
     return new_autoreply
 
+def get_ref_autoreply_by_id(db: Session, autoreply_id: int):
+    return db.query(RefAutoReply).filter(RefAutoReply.id == autoreply_id).first()
+
