@@ -18,7 +18,6 @@ class ReviewUpdate(BaseModel):
 
 class ResponseReview(ReviewBase):
     id: int
-    store: str
     platform: str  # 플랫폼 정보 추가
     reply: Optional[str] = None
     is_replied: Optional[bool] = False

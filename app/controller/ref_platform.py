@@ -22,3 +22,4 @@ def get_platforms(db: Session = Depends(get_db)):
             results.append(result)
     return results
 
+

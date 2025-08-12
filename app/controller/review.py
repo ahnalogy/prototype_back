@@ -46,7 +46,6 @@ def get_reviews(platform: str,
             content=review.content,
             rating=review.rating,
             reviewer=review.reviewer,
-            store=review.store.name,
             platform=review.platform.name,  # 플랫폼 정보 추가
             reply=review.reply,
             created_at=review.created_at.isoformat(),
