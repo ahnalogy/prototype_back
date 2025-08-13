@@ -25,6 +25,10 @@ def get_reviews_by_platform(db: Session, platform_name: str, limit: int = 10, of
 def get_reviews_all_platforms(db: Session, limit: int = 10, offset: int = 0):
     return db.query(Review).join(Platform).limit(limit).offset(offset).all()
 
+# 리뷰 내림차순 정렬해서 최신 등록 리뷰 가져오기
+def get_review_by_created_at(db: Session):
+    return db.query(Review).order_by(Review.created_at.desc()).first()
+
 def create_review(db: Session, review: ReviewCreate, platform_id: int = None,autoreply_id: int = None):
     db_review = Review(
         content=review.content,
