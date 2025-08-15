@@ -8,7 +8,7 @@ from app.crud.ref_review import get_ref_reviews_by_platform
 from app.crud.ref_platform import get_ref_platform_by_name
 from app.crud.review import create_review as create_review_crud
 from app.model.schema.review import ReviewCreate
-from app.crud.review import get_review_by_created_at
+from app.crud.review import get_review_by_created_atN_platform
 from app.crud.ref_review import get_ref_reviews_by_created_at
 
 platform_router = APIRouter()
@@ -20,43 +20,55 @@ platform_router = APIRouter()
 
  # @: decorator
  # 플랫폼 등록하기
-@platform_router.post("/create") # input으로 값을 받아오는거면 post라고 생각하는게 좋음
+@platform_router.post("/create")
 def create_platform(platform_crate: PlatformCreate, db: Session = Depends(get_db)):
-    print("platform_crate:", platform_crate)
-    platform = Platform(
-        name=platform_crate.name #platform tb에 name 컬럼에 값을 넣어줌
-        
-    )
-    db.add(platform) #platform 객체 -> db에 추가(column)
-    db.commit() # db에 반영
-    db.refresh(platform) # db -> platform 객체를 새로 불러옴
-
-    # ref_review에서 해당 플랫폼의 리뷰를 가져와서 review 테이블에 저장하기
-    latest_review=get_review_by_created_at(db) # 최신 리뷰를 가져옴
-    if latest_review:
-        late_ref_reviews=get_ref_reviews_by_created_at(db, latest_review.created_at, platform.id) # 최신 리뷰 이후의 리뷰를 가져옴
-        # db에 저장 
-        for ref_review in late_ref_reviews:
-            review_data = ReviewCreate(
-                content=ref_review.content,
-                rating=ref_review.rating,
-                reviewer=ref_review.reviewer,
-                platform=ref_platform.name
+    try:
+        print("platform_crate:", platform_crate)
+        # 플랫폼 중복 체크
+        existing_platform = db.query(Platform).filter(Platform.name == platform_crate.name).first()
+        if existing_platform:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="이미 등록된 플랫폼입니다."
             )
-            create_review_crud(db, review_data,platform_id=platform.id, autoreply_id=ref_review.autoreply_id)
-    else:
-        ref_platform=get_ref_platform_by_name(db, platform.name) # 플랫폼 이름으로 ref_platform에서 해당 플랫폼을 가져옴
-        ref_reviews=get_ref_reviews_by_platform(db, ref_platform.id, limit=10) # 리뷰를 가져오는 함수 호출
-        for ref_review in ref_reviews:
-            review_data = ReviewCreate(
-                content=ref_review.content,
-                rating=ref_review.rating,
-                reviewer=ref_review.reviewer,
-                platform=ref_platform.name
-            )
-            create_review_crud(db, review_data,platform_id=platform.id, autoreply_id=ref_review.autoreply_id)
 
-    return{"name": platform.name}
+        platform = Platform(
+            name=platform_crate.name
+        )
+        db.add(platform)
+        db.commit()
+        db.refresh(platform)
+
+        latest_review = get_review_by_created_atN_platform(db, platform.id)
+        if latest_review:
+            late_ref_reviews = get_ref_reviews_by_created_at(db, latest_review.created_at, platform.id)
+            for ref_review in late_ref_reviews:
+                review_data = ReviewCreate(
+                    content=ref_review.content,
+                    rating=ref_review.rating,
+                    reviewer=ref_review.reviewer,
+                    platform=ref_review.platform  # platform 이름이 ref_review에 있다고 가정
+                )
+                create_review_crud(db, review_data, platform_id=platform.id, autoreply_id=ref_review.autoreply_id)
+        else:
+            ref_platform = get_ref_platform_by_name(db, platform.name)
+            ref_reviews = get_ref_reviews_by_platform(db, ref_platform.id, limit=10)
+            for ref_review in ref_reviews:
+                review_data = ReviewCreate(
+                    content=ref_review.content,
+                    rating=ref_review.rating,
+                    reviewer=ref_review.reviewer,
+                    platform=ref_platform.name
+                )
+                create_review_crud(db, review_data, platform_id=platform.id, autoreply_id=ref_review.autoreply_id)
+
+        return {"name": platform.name}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"플랫폼 생성 중 오류가 발생했습니다: {str(e)}"
+        )
 
 @platform_router.get("/list", response_model=list[ResponsePlatform])
 def get_platforms(db: Session = Depends(get_db)):

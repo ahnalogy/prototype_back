@@ -29,6 +29,9 @@ def get_reviews_all_platforms(db: Session, limit: int = 10, offset: int = 0):
 def get_review_by_created_at(db: Session):
     return db.query(Review).order_by(Review.created_at.desc()).first()
 
+def get_review_by_created_atN_platform(db: Session, platform_id: int):
+    return db.query(Review).filter(Review.platform_id == platform_id).order_by(Review.created_at.desc()).first()
+
 def create_review(db: Session, review: ReviewCreate, platform_id: int = None,autoreply_id: int = None):
     db_review = Review(
         content=review.content,
