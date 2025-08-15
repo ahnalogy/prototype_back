@@ -10,6 +10,7 @@ from app.crud.review import create_review as create_review_crud
 from app.model.schema.review import ReviewCreate
 from app.crud.review import get_review_by_created_atN_platform
 from app.crud.ref_review import get_ref_reviews_by_created_at
+from app.crud.ref_platform import get_ref_platform_by_name
 
 platform_router = APIRouter()
 
@@ -31,8 +32,9 @@ def create_platform(platform_crate: PlatformCreate, db: Session = Depends(get_db
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="이미 등록된 플랫폼입니다."
             )
-
+        ref_platform = get_ref_platform_by_name(db, platform_crate.name)
         platform = Platform(
+            id=ref_platform.id if ref_platform else None,  # ref_platform이 존재하면 ID 사용
             name=platform_crate.name
         )
         db.add(platform)
@@ -41,13 +43,14 @@ def create_platform(platform_crate: PlatformCreate, db: Session = Depends(get_db
 
         latest_review = get_review_by_created_atN_platform(db, platform.id)
         if latest_review:
-            late_ref_reviews = get_ref_reviews_by_created_at(db, latest_review.created_at, platform.id)
+            ref_platform = get_ref_platform_by_name(db, platform.name)
+            late_ref_reviews = get_ref_reviews_by_created_at(db, latest_review.created_at, ref_platform.id)
             for ref_review in late_ref_reviews:
                 review_data = ReviewCreate(
                     content=ref_review.content,
                     rating=ref_review.rating,
                     reviewer=ref_review.reviewer,
-                    platform=ref_review.platform  # platform 이름이 ref_review에 있다고 가정
+                    platform=platform.name  # platform 이름이 ref_review에 있다고 가정
                 )
                 create_review_crud(db, review_data, platform_id=platform.id, autoreply_id=ref_review.autoreply_id)
         else:
