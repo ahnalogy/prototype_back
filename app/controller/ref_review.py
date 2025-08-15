@@ -85,7 +85,7 @@ def create_ref_review(ref_review: RefReviewCreate, db: Session = Depends(get_db)
             reviewer=ref_review.reviewer,
             platform=platform.name
         )
-        create_review_crud(db, review_data, platform_id=platform.id, autoreply_id=ref_review.autoreply_id)
+        create_review_crud(db, review_data, platform_id=platform.id, autoreply_id=auto_reply.id)
 
     res_review = RefResponseReview(
         id=new_ref_review.id,
