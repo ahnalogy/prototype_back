@@ -8,6 +8,9 @@ from app.utils.check import check_language
 from app.crud.ref_autoreply import create_ref_autoreply
 from app.model.schema.autoreview import AutoReviewResponse
 from app.crud.ref_platform import get_ref_platform_by_name
+from app.crud.review import create_review as create_review_crud
+from app.model.schema.review import ReviewCreate
+from app.crud.platform import get_platform_by_name
 
 ref_review_router = APIRouter()
 
@@ -73,6 +76,16 @@ def create_ref_review(ref_review: RefReviewCreate, db: Session = Depends(get_db)
         biz_casual_en=auto_reply.biz_casual_en,
         formal_en=auto_reply.formal_en
     )
+    
+    platform = get_platform_by_name(db,ref_review.platform)  # Ensure platform exists
+    if platform:
+        review_data = ReviewCreate(
+            content=ref_review.content,
+            rating=ref_review.rating,
+            reviewer=ref_review.reviewer,
+            platform=platform.name
+        )
+        create_review_crud(db, review_data, platform_id=platform.id, autoreply_id=ref_review.autoreply_id)
 
     res_review = RefResponseReview(
         id=new_ref_review.id,
